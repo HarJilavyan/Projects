@@ -1,0 +1,48 @@
+import os
+from pathlib import Path
+class Folder:
+    def __init__(self, name, size, num_files, depth):
+        self.name = name
+        self.size = size
+        self.num_files = num_files
+        self.depth = depth
+
+    def __str__(self):
+        return "{} ({} bytes, {} files)".format(self.name, self.size, self.num_files)
+
+def get_folder_size(path):
+    size = 0
+    num_files = 0
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            size += os.path.getsize(file_path)
+            num_files += 1
+    return (size, num_files)
+
+def get_folders(path):
+    folders = []
+    for root, dirs, files in os.walk(path):
+        depth = str(root)[len(str(path)):].count(os.sep)
+        size, num_files = get_folder_size(root)
+        folder = Folder(os.path.basename(root), size, num_files, depth)
+        folders.append(folder)
+    return folders
+
+def print_folders(folders):
+    for folder in folders:
+        print("  " * folder.depth + str(folder))
+
+def order_folders(folders, order_by):
+    if order_by == "name":
+        return sorted(folders, key=lambda folder: folder.name)
+    elif order_by == "size":
+        return sorted(folders, key=lambda folder: folder.size, reverse=True)
+    elif order_by == "depth":
+        return sorted(folders, key=lambda folder: folder.depth)
+
+path = Path("/Users/a1111/Desktop/FIleOrder")
+# path = Path("/Users/a1111/Desktop/Data Structures Z")
+folders = get_folders(path)
+print("Folders ordered by size:")
+print_folders(order_folders(folders, "size"))
