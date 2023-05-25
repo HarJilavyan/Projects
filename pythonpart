@@ -1,0 +1,87 @@
+import json
+import datetime
+
+"""Arajin"""
+file_path = "TD.json"
+unique_uuids = set()
+unique_cads = set()
+unique_codes = set()
+
+
+
+with open(file = file_path, mode = "r") as read_file:
+    object = json.load(read_file)
+    data = object["data"]
+    for item in data:
+        unit_names = item["unit_names"]
+        classifier_codes = item["classifier_codes"]
+        parent_units = item["parent_units"]
+        last_parent_units = parent_units[-1]
+        uuid = item["uuid"]
+        cad_code = item["cadastral_code"]
+        type_id = item["type_id"]
+        if uuid not in unique_uuids:
+            unique_uuids.add(uuid)
+        else:
+            print(f"This uuid {uuid} is duplicate,\n")
+        if type_id == "community":
+            if cad_code == "":
+                continue
+            else:
+                print(f"This cadaster code {cad_code} is not valid,\n")
+        if type_id == "residence":
+            if cad_code == "":
+                print(f"The cadaster code for this {uuid} and cad_code is missing,\n")
+            else:
+                if cad_code not in unique_cads:
+                    unique_cads.add(cad_code)
+                else:
+                    print(f"This cadastral code {cad_code} for this uuid {uuid} is duplicate,\n")
+
+        try:
+            if last_parent_units["end_date"] != "":
+                print("mtnuma")
+                check_unit_names = item["unit_names"]
+                check_class_codes = item["classifier_codes"]
+
+                if check_unit_names[-1]['end_date'] == "" or check_class_codes[-1]['end_date'] == "":
+                    print(f"Error: Unit names or classifier codes are missing end dates for UUID {item['uuid']}")
+        except Exception as ex:
+            last_parent_units2 = last_parent_units[0]
+            if last_parent_units2["end_date"] != "":
+                check_unit_names2 = check_unit_names[0]
+                check_class_codes2 = check_class_codes[0]
+                if check_unit_names2['end_date'] == "" or check_class_codes2['end_date'] == "":
+                        print(f"Parrent uuid {parent_uuid} has end date but some dont the exception {ex},\n")  
+
+        try:
+            for unit in unit_names + classifier_codes + parent_units:
+                start_date = unit["start_date"]
+                end_date = unit["end_date"]
+                if start_date and end_date and start_date > end_date:
+                    print(f"Wrong position of dates in uuid {uuid},\n")
+        except Exception as ex:
+            print(f"Wrong date {ex},\n")
+
+        codes = item["classifier_codes"]
+        for i in codes:
+            code = i["code"]
+            if code not in unique_codes:
+                unique_codes.add(code)
+            elif not(len(code) <= 8 and len(code) >= 7):
+                print(f"This code{code} is too long")
+            else:
+                print(f"This code {code} is duplicate or is too long,\n")
+        
+        try:
+            for p1 in parent_units:
+                parent_uuid = p1["parent_uuid"]
+                if parent_uuid not in unique_uuids:
+                    print(f"Parrent uuid {parent_uuid} missing for this uuid {uuid} ,\n")
+        except Exception as ex:
+            par2 = parent_units[0]
+            for p2 in par2:
+                parent_uuid = p2["parent_uuid"]
+                if parent_uuid not in unique_uuids:
+                    print(f"Parrent uuid {parent_uuid} missing for this {uuid} the exception {ex},\n")
+            ("Error occured")
